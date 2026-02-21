@@ -1,0 +1,11 @@
+{
+  "name": "unity-job-hunter-ai",
+  "version": "1.0.0",
+  "description": "Unity Job Alert Automation",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "rss-parser": "^3.13.0"
+  }
+}
