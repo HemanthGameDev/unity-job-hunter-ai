@@ -1,14 +1,11 @@
-import axios from "axios";
 import Parser from "rss-parser";
+import { Resend } from "resend";
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 const parser = new Parser();
 
 const KEYWORDS = ["unity", "game developer"];
 const LOCATIONS = ["hyderabad", "remote"];
-
-const EMAILJS_SERVICE_ID = process.env.SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = process.env.TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = process.env.PUBLIC_KEY;
 
 const EMAIL = "gunti.hemanth.kumar.dev@gmail.com";
 
@@ -19,26 +16,24 @@ const feeds = [
 
 function matchesCriteria(title, content) {
   const text = (title + " " + content).toLowerCase();
-
   const hasKeyword = KEYWORDS.some(k => text.includes(k));
   const hasLocation = LOCATIONS.some(l => text.includes(l));
-
   return hasKeyword && hasLocation;
 }
 
 async function sendEmail(jobTitle, link) {
-  await axios.post("https://api.emailjs.com/api/v1.0/email/send", {
-    service_id: EMAILJS_SERVICE_ID,
-    template_id: EMAILJS_TEMPLATE_ID,
-    user_id: EMAILJS_PUBLIC_KEY,
-    template_params: {
-      to_email: EMAIL,
-      job_title: jobTitle,
-      job_link: link
-    }
+  await resend.emails.send({
+    from: "Job Hunter <onboarding@resend.dev>",
+    to: EMAIL,
+    subject: "🚀 New Unity Job Found!",
+    html: `
+      <h2>New Job Match</h2>
+      <p><strong>Title:</strong> ${jobTitle}</p>
+      <p><a href="${link}">View Job</a></p>
+    `
   });
 
-  console.log("Email sent for:", jobTitle);
+  console.log("Email sent:", jobTitle);
 }
 
 async function checkJobs() {
@@ -47,7 +42,7 @@ async function checkJobs() {
 
     for (const item of feedData.items) {
       if (matchesCriteria(item.title, item.contentSnippet || "")) {
-        await sendEmail(item.title, item.link);
+        await sendEmail(item.title.trim(), item.link);
       }
     }
   }
